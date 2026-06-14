@@ -1,0 +1,12 @@
+{
+    "display_name": "Character Folders",
+    "loading_order": 60,
+    "requires": [],
+    "optional": [],
+    "js": "index.js",
+    "css": "style.css",
+    "author": "Character Folders Contributors",
+    "version": "1.0.0",
+    "homePage": "https://github.com/XaYS-101/Character-Folders-Silly-Tavern",
+    "auto_update": false
+}
