@@ -157,6 +157,9 @@ const I18N = {
         nothing_selected: 'No characters selected.',
         import_ok: 'Folders imported.',
         import_bad: 'Invalid file — could not import.',
+        clear_all_btn: 'Clear all data…',
+        confirm_clear_all: 'Delete ALL extension data: folders, assignments, pinned characters and settings? Character cards are not affected. This cannot be undone.',
+        clear_all_done: 'All extension data cleared.',
         smart_badge: 'smart',
         pin: 'Pin to top',
         unpin: 'Unpin',
@@ -213,6 +216,9 @@ const I18N = {
         nothing_selected: 'Не выбрано ни одного персонажа.',
         import_ok: 'Папки импортированы.',
         import_bad: 'Неверный файл — импорт не выполнен.',
+        clear_all_btn: 'Очистить все данные…',
+        confirm_clear_all: 'Удалить ВСЕ данные расширения: папки, привязки, закреплённых персонажей и настройки? Карточки персонажей не затрагиваются. Отменить это нельзя.',
+        clear_all_done: 'Все данные расширения очищены.',
         smart_badge: 'умная',
         pin: 'Закрепить наверху',
         unpin: 'Открепить',
@@ -425,6 +431,10 @@ const SETTINGS_HTML = `
                 <input id="cf_import_file" type="file" accept=".json,application/json" hidden />
             </div>
 
+            <div class="cf-section">
+                <input id="cf_clear_all" class="menu_button cf-danger" type="button" value="Clear all data" data-cf-i18n="[value]clear_all_btn" />
+            </div>
+
             <small class="cf-hint" data-cf-i18n="hint"></small>
         </div>
     </div>
@@ -483,6 +493,43 @@ function bindSettingsPanel() {
     const fileInput = document.getElementById('cf_import_file');
     document.getElementById('cf_import').addEventListener('click', () => fileInput.click());
     fileInput.addEventListener('change', importFolders);
+    document.getElementById('cf_clear_all').addEventListener('click', clearAllData);
+}
+
+// Reset every persisted setting to its default (folders, assignments, pins,
+// toggles). The settings object is mutated in place so references captured by
+// other listeners stay valid. Language is kept so the UI doesn't flip on the
+// user mid-action. Session state (selection, solo filter) is cleared too.
+async function clearAllData() {
+    const ok = await callGenericPopup(t('confirm_clear_all'), POPUP_TYPE.CONFIRM);
+    if (ok !== POPUP_RESULT.AFFIRMATIVE) return;
+
+    const s = getSettings();
+    const keepLanguage = s.language;
+    for (const [k, v] of Object.entries(DEFAULT_SETTINGS)) {
+        s[k] = structuredClone(v);
+    }
+    s.language = keepLanguage;
+
+    soloFolderId = null;
+    if (selectMode) toggleSelectMode();
+    selectedKeys.clear();
+    saveSettings();
+
+    // Re-sync the settings panel controls with the fresh defaults.
+    const enabled = document.getElementById('cf_enabled');
+    if (enabled) enabled.checked = !!s.enabled;
+    const sortSel = document.getElementById('cf_default_sort');
+    if (sortSel) sortSel.value = s.folderSort;
+    const homeShelf = document.getElementById('cf_home_shelf');
+    if (homeShelf) homeShelf.checked = !!s.homeShelf;
+    const homeGroup = document.getElementById('cf_home_group');
+    if (homeGroup) homeGroup.checked = !!s.homeGroup;
+
+    rebuildToolbar();
+    scheduleRender();
+    scheduleHomeRender();
+    toast(t('clear_all_done'), 'success');
 }
 
 /* ------------------------------------------------------------------

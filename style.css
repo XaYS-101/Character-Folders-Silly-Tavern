@@ -26,6 +26,14 @@
     flex-wrap: wrap;
     align-items: center;
 }
+#cf_settings .cf-danger {
+    color: var(--fullred, #e04a4a);
+    border-color: var(--fullred, #e04a4a);
+}
+#cf_settings .cf-danger:hover {
+    background: var(--fullred, #e04a4a);
+    color: #fff;
+}
 
 /* ---------- Toolbar above the character list ---------- */
 .cf-toolbar {
